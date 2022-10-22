@@ -18,25 +18,41 @@ class App extends Component {
   handleAdd = async () => {
     const obj = { title: "a", body: "b" };
     const { data: post } = await axios.post(apiEndpoint, obj);
-    console.log(post);
-
     let posts = [post, ...this.state.posts];
     this.setState({ posts });
   };
 
   handleUpdate = async (post) => {
+    const originalPosts = this.state.posts;
     post.title = "UPDATED";
-    await axios.put(apiEndpoint + "/" + post.id, post);
 
     let posts = [...this.state.posts];
     let index = posts.indexOf(post);
     posts[index] = { ...post };
     this.setState({ posts });
+    try {
+      await axios.put(apiEndpoint + "/" + post.id, post);
+    } catch (error) {
+      this.setState({ posts: originalPosts });
+    }
+  };
+
+  handleDelete = async (post) => {
+    const originalPosts = this.state.posts;
+    const posts = this.state.posts.filter((p) => p.id !== post.id);
+    this.setState({ posts });
+
+    try {
+      await axios.delete(apiEndpoint + "/" + post.id);
+    } catch (error) {
+      alert("Something failed while delete a post");
+      this.setState({ posts: originalPosts });
+    }
   };
 
   render() {
     return (
-      <React.Fragment>
+      <>
         <button className="btn btn-primary" onClick={this.handleAdd}>
           Add
         </button>
@@ -56,13 +72,13 @@ class App extends Component {
                   <button onClick={() => this.handleUpdate(e)}> UPDATE</button>
                 </td>
                 <td className="tableW">
-                  <button> DELETE</button>
+                  <button onClick={() => this.handleDelete(e)}> DELETE</button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </React.Fragment>
+      </>
     );
   }
 }
