@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { Component } from "react";
-
+import http from "./services/httpService";
 import "./App.css";
 
 let apiEndpoint = "https://jsonplaceholder.typicode.com/posts";
@@ -11,31 +11,29 @@ class App extends Component {
   };
 
   async componentDidMount() {
-    const { data: posts } = await axios.get(apiEndpoint);
+    const { data: posts } = await http.get(apiEndpoint);
     this.setState({ posts });
   }
 
   handleAdd = async () => {
     const obj = { title: "a", body: "b" };
-    const { data: post } = await axios.post(apiEndpoint, obj);
+    const { data: post } = await http.post(apiEndpoint, obj);
     let posts = [post, ...this.state.posts];
     this.setState({ posts });
   };
 
   handleUpdate = async (post) => {
-    const originalPosts = this.state.posts;
     post.title = "UPDATED";
+    await http.put(apiEndpoint + "/" + post.id, post);
 
     let posts = [...this.state.posts];
     let index = posts.indexOf(post);
     posts[index] = { ...post };
     this.setState({ posts });
-    try {
-      await axios.put(apiEndpoint + "/" + post.id, post);
-    } catch (error) {
-      this.setState({ posts: originalPosts });
-    }
   };
+
+  // apiEndpoint + "/" + post.id, post
+  //'https://httpstat.us/404'
 
   handleDelete = async (post) => {
     const originalPosts = this.state.posts;
@@ -43,9 +41,10 @@ class App extends Component {
     this.setState({ posts });
 
     try {
-      await axios.delete(apiEndpoint + "/" + post.id);
+      await http.delete(apiEndpoint + "/" + post.id);
     } catch (error) {
-      alert("Something failed while delete a post");
+      alert("This post has been already been deleted, error 404");
+
       this.setState({ posts: originalPosts });
     }
   };
